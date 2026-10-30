@@ -1,0 +1,10 @@
+﻿event_id,longitude,latitude,anchor_source,survey_year,survey_village,small_class
+CH_2024_HARV_012,119.223094,29.753716,strict_measured_plot_match,2024,文昌村小酉坞,00414
+CH_2024_HARV_012,119.221754,29.754073,strict_measured_plot_match,2024,文昌村小酉坞,00418
+CH_2024_HARV_012,119.218462,29.753342,strict_measured_plot_match,2024,文昌村小酉坞村,00441
+CH_2025_HARV_028,119.184414,29.73118,strict_measured_plot_match,2024,文昌村,00717
+CH_2025_HARV_028,119.183626,29.730787,strict_measured_plot_match,2024,文昌村,00728
+CH_2025_HARV_028,119.184251,29.73012,strict_measured_plot_match,2024,文昌村,00740
+CH_2025_HARV_028,119.18375,29.729702,strict_measured_plot_match,2024,文昌村,00748
+CH_2025_HARV_028,119.182148,29.729188,strict_measured_plot_match,2024,文昌村,00757
+CH_2025_HARV_030,118.706205,29.684467,strict_measured_plot_match,2025,金塔村,00199

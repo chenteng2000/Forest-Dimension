@@ -1,0 +1,34 @@
+淳安森林变化核实平台——Windows 运行说明
+
+一、启动
+1. 请保持 ForestChangePlatform.exe 与同目录的 _internal 文件夹一起使用。
+2. 双击 ForestChangePlatform.exe。
+3. 程序会在本机启动服务，并自动打开 Google Chrome：
+   http://127.0.0.1:8765
+4. 关闭程序时，关闭程序附带的控制台窗口，或在该窗口按 Ctrl+C。
+
+二、运行条件
+1. 本机 Windows 用户需要已经完成 Earth Engine 登录，并且登录凭据位于本机默认配置目录。
+2. 本应用不会把 Google 登录令牌、Earth Engine 凭据或 Cloud 项目密钥打包进 exe。
+3. 应用使用的 Earth Engine 项目：mimetic-cooler-496216-t4。
+4. 运行时需要网络连接，用于从 Earth Engine 查询公开遥感影像和生成地图瓦片。
+
+三、主要功能
+- 采伐事件列表和事件筛选；
+- 2024 年核心时段、2025—2026 年扩展时段；
+- Sentinel-2 SR Harmonized 10 m 前后影像对比；
+- NDVI 前后差异、变化热力图和逐景时序曲线；
+- 自动生成候选变化斑块；
+- 变化框 GeoJSON 下载；
+- 待复核、需补充、已确认、已驳回四种人工核查状态；
+- 核查人、备注和核查表 CSV 导出。
+
+四、核查记录
+review_state.json 位于 exe 同目录。平台会自动保存人工核查状态，重新启动后继续保留。
+建议定期备份该文件。不要把它删除后再覆盖回旧版本，否则会丢失本机核查记录。
+
+五、注意事项
+- 这是 one-dir 发布版，不能只复制 ForestChangePlatform.exe；必须保留整个 ForestChangePlatform 文件夹。
+- 10 m 候选变化框用于辅助核查，不能直接替代最终采伐边界。
+- 没有可靠空间边界的事件会标记为“待补空间边界”，暂不生成影像变化框。
+- 如果 8765 端口被占用，请先关闭已经运行的平台实例，再重新启动。

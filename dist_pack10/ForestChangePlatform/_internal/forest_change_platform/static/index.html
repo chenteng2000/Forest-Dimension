@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>淳安森林变化核实平台</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">FOREST CHANGE REVIEW</div>
+      <h1>淳安森林变化核实平台</h1>
+      <p>以 Sentinel-2 公开影像核实采伐扰动。优先使用实测点定位；缺少实测坐标时，只取旧矢量整体中心作近似定位。搜索缓冲区用于找影像，旧矢量边界不参与识别。</p>
+    </div>
+    <div class="header-status">
+      <span id="health-dot" class="status-dot pending"></span>
+      <span id="health-text">正在连接 Earth Engine…</span>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="toolbar panel">
+      <div class="toolbar-title">事件筛选</div>
+      <label>年份
+        <select id="year-filter">
+          <option value="">全部</option>
+          <option value="2024" selected>2024（核心）</option>
+          <option value="2025">2025（扩展）</option>
+          <option value="2026">2026（扩展）</option>
+        </select>
+      </label>
+      <label>事件类型
+        <select id="type-filter"><option value="">全部</option></select>
+      </label>
+      <label class="search-label">搜索
+        <input id="search-input" type="search" placeholder="事件编号、乡镇、小班号" />
+      </label>
+      <div class="mode-switch" role="group" aria-label="影像时段">
+        <button class="mode active" data-mode="core">核心 2023—2024</button>
+        <button class="mode" data-mode="extended">扩展至 2025</button>
+      </div>
+      <button id="export-review" class="action-button" type="button">导出识别结果与采伐原始记录 Excel</button>
+    </section>
+
+    <section class="workspace">
+      <aside class="event-panel panel">
+        <div class="panel-heading">
+          <div>
+            <div class="eyebrow">EVENT LEDGER</div>
+            <h2>采伐核查事件</h2>
+          </div>
+          <span id="event-count" class="count-badge">0</span>
+        </div>
+        <div id="event-list" class="event-list"></div>
+      </aside>
+
+      <section class="viewer-panel panel">
+        <div class="viewer-heading">
+          <div>
+            <div class="eyebrow">SAME LOCATION / TIME COMPARISON</div>
+            <h2 id="viewer-title">选择一个可定位的采伐事件</h2>
+          </div>
+          <div id="viewer-meta" class="viewer-meta">核心时段：2023—2024 · Sentinel-2 · 10 m</div>
+        </div>
+        <div class="map-grid">
+          <div class="map-card">
+            <div class="map-label"><span>变化前</span><strong id="pre-period">—</strong></div>
+            <div id="map-pre" class="map"></div>
+          </div>
+          <div class="map-card">
+            <div class="map-label"><span>变化后</span><strong id="post-period">—</strong></div>
+            <div id="map-post" class="map"></div>
+          </div>
+        </div>
+        <div class="layer-controls">
+          <label><input id="toggle-change" type="checkbox" checked /> 显示疑似变化框</label>
+          <label><input id="toggle-heat" type="checkbox" /> 显示 NDVI 差异热力层</label>
+          <span id="layer-note" class="muted">尚未选择事件</span>
+        </div>
+        <div id="loading" class="loading hidden">正在请求 Sentinel-2 影像并识别变化像元…</div>
+      </section>
+    </section>
+
+    <section class="detail-grid">
+      <article class="panel detail-card">
+        <div class="eyebrow">EVENT DETAILS</div>
+        <h2 id="detail-title">未选择事件</h2>
+        <div id="detail-content" class="detail-content empty">从左侧事件表选择一条记录。</div>
+        <div class="review-box">
+          <div class="review-heading"><strong>人工核查状态</strong><span id="review-feedback" class="muted"></span></div>
+          <div class="review-controls">
+            <select id="review-status" aria-label="核查状态">
+              <option value="pending">待复核</option>
+              <option value="needs_review">需补充</option>
+              <option value="confirmed">已确认</option>
+              <option value="rejected">已驳回</option>
+            </select>
+            <input id="reviewer-name" type="text" placeholder="核查人" aria-label="核查人" />
+            <input id="actual-disturbance-date" type="date" aria-label="人工核验实际扰动日期" title="人工核验实际扰动日期" />
+          </div>
+          <p class="muted">实际扰动日期需根据作业、验收记录及原始影像人工核验；留空表示仍待核实。</p>
+          <textarea id="review-note" rows="2" placeholder="记录影像、边界、云量或台账核实意见"></textarea>
+          <button id="save-review" class="action-button primary" type="button">保存核查记录</button>
+        </div>
+      </article>
+      <article class="panel detail-card">
+        <div class="eyebrow">DETECTION RESULT</div>
+        <h2>变化检测结果</h2>
+        <div id="detection-content" class="detail-content empty">平台以实测点或近似中心作为搜索锚点；识别范围和面积由变化像元生成。</div>
+        <button id="download-change" class="action-button" type="button" disabled>下载识别单元 GeoJSON</button>
+      </article>
+      <article class="panel detail-card timeseries-card">
+        <div class="eyebrow">SAME LOCATION / TIME SERIES</div>
+        <h2>HLS EVI / NBR 时序（30 m）</h2>
+        <div id="timeseries-chart" class="timeseries-chart empty">选择有定位锚点的事件后，加载同季节基线、许可期逐月核查和恢复观察。</div>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <span>数据：Sentinel-2 SR Harmonized 10 m（空间筛查）+ NASA HLS L30/S30 30 m（时序）· Earth Engine 项目 mimetic-cooler-496216-t4</span>
+    <span>NDVI 阈值用于候选变化筛查；实际采伐须结合台账、EVI/NBR 与原始影像核验</span>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="/app.js"></script>
+</body>
+</html>
